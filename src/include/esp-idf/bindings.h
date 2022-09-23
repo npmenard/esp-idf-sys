@@ -306,6 +306,7 @@
 #if ESP_IDF_VERSION_MAJOR >= 5
 #include "driver/pulse_cnt.h"
 #endif
+#include "esp_camera.h"
 #endif
 #include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
