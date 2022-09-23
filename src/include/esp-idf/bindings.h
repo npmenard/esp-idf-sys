@@ -183,6 +183,7 @@
 #endif
 #ifndef CONFIG_IDF_TARGET_ESP32C3
 #include "driver/pcnt.h"
+#include "esp_camera.h"
 #endif
 #include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
