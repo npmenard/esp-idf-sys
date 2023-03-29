@@ -15,6 +15,26 @@
 #include "esp_ipc.h"
 #include "esp_mac.h"
 
+#include "freertos/task_snapshot.h"
+
+#if CONFIG_IDF_TARGET_ESP32
+#if ESP_IDF_VERSION_MAJOR == 4
+#include "esp32/himem.h"
+#elif ESP_IDF_VERSION_MAJOR == 5
+#ifdef ESP_IDF_COMP_ESP_PSRAM_ENABLED
+#include "esp32/himem.h"
+#endif // ESP_IDF_COMP_ESP_PSRAM_ENABLED
+#endif // ESP_IDF_VERSION_MAJOR == 5
+#endif // CONFIG_IDF_TARGET_ESP32
+
+#if ESP_IDF_VERSION_MAJOR == 4
+#include "esp_spiram.h"
+#elif ESP_IDF_VERSION_MAJOR == 5
+#ifdef ESP_IDF_COMP_ESP_PSRAM_ENABLED
+#include "esp_psram.h"
+#endif // ESP_IDF_COMP_ESP_PSRAM_ENABLED
+#endif // ESP_IDF_VERSION_MAJOR == 5
+
 #if ESP_IDF_VERSION_MAJOR == 4
 #include "esp_int_wdt.h"
 #elif ESP_IDF_VERSION_MAJOR == 5
@@ -63,6 +83,13 @@
 #endif
 #include "esp_now.h"
 #include "esp_mesh.h"
+#include "esp_wpa2.h"
+#endif
+
+#ifdef ESP_IDF_COMP_WPA_SUPPLICANT_ENABLED
+#if defined(CONFIG_ESP_WIFI_DPP_SUPPORT) || defined(CONFIG_WPA_DPP_SUPPORT)
+#include "esp_dpp.h"
+#endif
 #endif
 
 #ifdef ESP_IDF_COMP_ESP_ETH_ENABLED
@@ -177,6 +204,11 @@
 #include "driver/i2s.h"
 #include "driver/ledc.h"
 #if ESP_IDF_VERSION_MAJOR > 4
+#include "driver/i2s_common.h"
+#include "driver/i2s_pdm.h"
+#include "driver/i2s_std.h"
+#include "driver/i2s_tdm.h"
+#include "driver/i2s_types.h"
 #include "driver/mcpwm_prelude.h"
 #else
 #include "driver/mcpwm.h"
@@ -286,6 +318,8 @@
 #include "esp_bt_main.h"
 #include "esp_gap_bt_api.h"
 #include "esp_bt_device.h"
+#include "esp_a2dp_api.h"
+#include "esp_avrc_api.h"
 #endif
 
 #ifdef CONFIG_BT_NIMBLE_ENABLED
