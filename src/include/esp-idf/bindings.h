@@ -4,7 +4,7 @@
 #error Only ESP-IDF versions >= V4.3.2 are currently supported; if you are using the PIO build (the default one), wipe out your `.embuild` folder and try again with a clean rebuild
 #endif
 
-//#include "esp_crc.h"
+#include "esp_rom_crc.h"
 #include "esp_log.h"
 #include "esp_debug_helpers.h"
 
@@ -130,6 +130,8 @@
 
 #ifdef ESP_IDF_COMP_LWIP_ENABLED
 #include "lwip/lwip_napt.h"
+#include "lwip/netdb.h"
+#include "lwip/sockets.h"
 #include "esp_sntp.h"
 #include "ping/ping_sock.h"
 #endif
@@ -154,6 +156,15 @@
 
 #ifdef ESP_IDF_COMP_ESP_HTTP_CLIENT_ENABLED
 #include "esp_http_client.h"
+#endif
+
+#ifdef ESP_IDF_COMP_TCP_TRANSPORT_ENABLED
+#include "esp_transport.h"
+#include "esp_transport_ssl.h"
+#include "esp_transport_tcp.h"
+#ifdef CONFIG_WS_TRANSPORT
+#include "esp_transport_ws.h"
+#endif
 #endif
 
 #ifdef ESP_IDF_COMP_ESP_HTTP_SERVER_ENABLED
@@ -196,7 +207,7 @@
 #ifdef ESP_IDF_COMP_DRIVER_ENABLED
 #include "driver/adc.h"
 #include "driver/twai.h"
-#if !defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32S3)
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2)
 #include "driver/dac.h"
 #endif
 #include "driver/gpio.h"
@@ -211,9 +222,10 @@
 #include "driver/i2s_types.h"
 #include "driver/mcpwm_prelude.h"
 #else
+#include "driver/i2s.h"
 #include "driver/mcpwm.h"
 #endif
-#ifndef CONFIG_IDF_TARGET_ESP32C3
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32H2) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32P4)
 #include "driver/pcnt.h"
 #include "esp_camera.h"
 #endif
@@ -234,7 +246,7 @@
 #include "driver/spi_slave.h"
 #include "driver/timer.h"
 
-#ifndef CONFIG_IDF_TARGET_ESP32C3
+#if defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3)
 #include "driver/touch_pad.h"
 #endif
 
