@@ -71,12 +71,15 @@ fn main() -> anyhow::Result<()> {
             .collect(),
     };
 
-    let mcu = cfg_args.get("esp_idf_idf_target").ok_or_else(|| {
-        anyhow!(
-            "Failed to get IDF_TARGET from kconfig. cfgs:\n{:?}",
-            cfg_args.args
-        )
-    })?;
+    let mcu = cfg_args
+        .get("esp_idf_idf_target")
+        .ok_or_else(|| {
+            anyhow!(
+                "Failed to get IDF_TARGET from kconfig. cfgs:\n{:?}",
+                cfg_args.args
+            )
+        })?
+        .to_lowercase();
 
     let manifest_dir = manifest_dir()?;
 
@@ -109,6 +112,7 @@ fn main() -> anyhow::Result<()> {
             .blocklist_function("_v.*printf_r")
             .blocklist_function("_v.*scanf_r")
             .blocklist_function("esp_log_writev")
+            .blocklist_type("pcnt_unit_t") // Fix for struct pcnt_unit_t vs enum pcnt_unit_t
             .clang_args(build_output.components.clang_args())
             .clang_args(vec![
                 "-target",
@@ -204,8 +208,6 @@ fn main() -> anyhow::Result<()> {
         embuild::build::ESP_IDF_PATH_VAR,
         build_output.esp_idf.try_to_str()?,
     );
-
-    build_output.cincl_args.propagate();
 
     if let Some(link_args) = build_output.link_args {
         link_args.propagate();

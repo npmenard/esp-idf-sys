@@ -4,7 +4,7 @@ use std::{env, iter};
 use anyhow::{anyhow, Context, Result};
 use embuild::bindgen;
 
-use crate::common::{EspIdfBuildOutput, EspIdfComponents};
+use crate::common::{sanitize_project_path, setup_clang_env, EspIdfBuildOutput, EspIdfComponents};
 
 pub const CARGO_CMAKE_BUILD_ACTIVE_VAR: &str = "CARGO_CMAKE_BUILD_ACTIVE";
 pub const CARGO_CMAKE_BUILD_INCLUDES_VAR: &str = "CARGO_CMAKE_BUILD_INCLUDES";
@@ -14,6 +14,9 @@ const CARGO_CMAKE_BUILD_SDKCONFIG_VAR: &str = "CARGO_CMAKE_BUILD_SDKCONFIG";
 const CARGO_CMAKE_BUILD_ESP_IDF_VAR: &str = "CARGO_CMAKE_BUILD_ESP_IDF";
 
 pub fn build() -> Result<EspIdfBuildOutput> {
+    sanitize_project_path()?;
+    setup_clang_env()?;
+
     let components = EspIdfComponents::from(
         env::var(CARGO_CMAKE_BUILD_LINK_LIBRARIES_VAR)?
             .split(';')

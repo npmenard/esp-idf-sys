@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.7] - 2023-11-08
+* Workaround for https://github.com/esp-rs/esp-idf-svc/issues/312
+* Include gptimer headers (#255)
+
+## [0.33.6] - 2023-11-07
+* Export esp_netif_sntp APIs from esp-idf 5.1
+* Fix compile error for esp32c6 with NimBLE
+* Support for the [symlink to xtensa Clang library](https://github.com/esp-rs/espup/releases/tag/v0.8.0) installed by latest `espup` ([esp-idf-svc issue 319](https://github.com/esp-rs/esp-idf-hal/issues/319))
+
+## [0.33.5] - 2023-10-28
+* Support for latest ESP IDF 5.2 dev (master)
+
+## [0.33.4] - 2023-10-27
+* The `MCU` environment variable was failing the `pio` build if the MCU was not uppercased
+* Better error message for the `native` build in case the MCU was not recognized
+
+## [0.33.3] - 2023-10-17
+* Support for ESP IDF Component Manager - check the documentation in BUILD-OPTIONS.md
+* ESP32H2 and ESP32C5 now properly assigned to the `riscv32imac-esp-espidf`
+* All ESP IDF WPA supplicant APIs exposed
+* Build is now checking for the presence of certain environment variables (e.g. CXXFLAGS) that might fail the ESP IDF C build and removing those
+* Build is now checking if the project path might fail the ESP IDF C build (i.e. too long on Windows or containing spaces on Unix) and failing if so
+
+## [0.33.2] - 2023-08-18
+* Band-aid solution that fixes the build with recent Rust nightlies and ESP IDF < 5.1 (https://github.com/esp-rs/esp-idf-template/issues/149)
+* Raw bindings for the continuous ADC driver (ESP IDF >= 5.0)
+* Raw bindings for bootloader random functions
+* Raw bindings for all available classic BT APIs
+* Raw bindings for esp_freertos_hooks.h
+
 ## [0.33.1] - 2023-06-11
 
 * Raw bindings for the I2S driver

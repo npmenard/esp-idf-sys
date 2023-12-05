@@ -1,6 +1,6 @@
 [package]
 name = "esp-idf-sys"
-version = "0.33.1"
+version = "0.33.7"
 authors = ["Alexey Arbuzov <aarbuzov@termt.com>", "sapir <yasapir@gmail.com>", "Ivan Markov <ivan.markov@gmail.com>", "Dominik Gschwind <dominik.gschwind99@gmail.com>"]
 edition = "2021"
 resolver = "2"
@@ -16,7 +16,7 @@ documentation = "https://esp-rs.github.io/esp-idf-sys/"
 rust-version = "1.66"
 
 [features]
-default = ["std", "native"]
+default = ["std", "native", "binstart"]
 
 std = []
 alloc_handler = []
@@ -35,7 +35,7 @@ build-time = "0.1"   # For esp_app_desc!()
 const_format = "0.2" # For esp_app_desc!()
 
 [build-dependencies]
-embuild = { version = "0.31.2", features = ["glob", "kconfig"] }
+embuild = { version = "0.31.3", features = ["glob", "kconfig"] }
 anyhow = "1"
 regex = "1.5"
 bindgen = "0.63"
@@ -43,3 +43,4 @@ cargo_metadata = "0.15"
 serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.24", features = ["derive"] }
 envy = "0.4.2"
+which = "4.4"

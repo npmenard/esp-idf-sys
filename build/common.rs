@@ -21,7 +21,7 @@ pub const V_4_3_2_PATCHES: &[&str] = &[
 ];
 
 #[allow(dead_code)]
-pub const MASTER_PATCHES: &[&str] = &[];
+pub const NO_PATCHES: &[&str] = &[];
 
 #[allow(dead_code)]
 pub const V_5_0_PATCHES: &[&str] = &["patches/esp_app_format_weak_v5.0.diff"];
@@ -348,4 +348,151 @@ pub fn manifest_dir() -> Result<PathBuf> {
             )
         })
         .map(PathBuf::from)
+}
+
+pub fn sanitize_c_env_vars() -> Result<()> {
+    const POLICY_VAR: &str = "ESP_IDF_C_ENV_VARS_ISSUES";
+    const C_ENV_VARS: &[&str] = &[
+        "CC",
+        "CXX",
+        "CFLAGS",
+        "CCFLAGS",
+        "CXXFLAGS",
+        "CPPFLAGS",
+        "LDFLAGS",
+        "GCC_EXEC_PREFIX",
+        "COMPILER_PATH",
+        "C_INCLUDE_PATH",
+        "CPLUS_INCLUDE_PATH",
+    ];
+
+    let set_vars = C_ENV_VARS
+        .iter()
+        .filter_map(|var| std::env::var(var).ok().map(|value| (var, value)))
+        .collect::<Vec<_>>();
+
+    if !set_vars.is_empty() {
+        let message = set_vars
+            .iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join(";");
+
+        let policy = std::env::var(POLICY_VAR)
+            .ok()
+            .unwrap_or("warnremove".into())
+            .to_ascii_lowercase();
+
+        match policy.as_str() {
+            "warn" | "err" => {
+                let message =
+                    format!("Detected env vars that might affect the ESP IDF C build: `{message}`");
+
+                if policy == "warn" {
+                    cargo::print_warning(format!("(esp-idf-sys) {message}"));
+                } else {
+                    bail!(message);
+                }
+            }
+            "warnremove" | "remove" => {
+                for (var, _) in set_vars {
+                    std::env::remove_var(var);
+                }
+
+                if policy == "warnremove" {
+                    let message = format!(
+                        "Removed env vars that might affect the ESP IDF C build: `{message}`"
+                    );
+
+                    cargo::print_warning(format!("(esp-idf-sys) {message}"));
+                }
+            }
+            "ignore" => (),
+            _ => bail!("Unsupported value for {POLICY_VAR} env var: {policy}"),
+        }
+    }
+
+    Ok(())
+}
+
+pub fn sanitize_project_path() -> Result<()> {
+    const POLICY_VAR: &str = "ESP_IDF_PATH_ISSUES";
+
+    let out_dir = std::fs::canonicalize(cargo::out_dir())?
+        .to_string_lossy()
+        .into_owned();
+
+    let report = |message: String| {
+        let policy = std::env::var(POLICY_VAR).ok().unwrap_or("err".into());
+
+        match policy.as_str() {
+            "warn" => cargo::print_warning(format!("(esp-idf-sys) {message}")),
+            "err" => bail!(message),
+            "ignore" => (),
+            _ => bail!("Unsupported value for {POLICY_VAR} env var: {policy}"),
+        }
+
+        Ok(())
+    };
+
+    #[cfg(windows)]
+    {
+        if out_dir.len() > 86 {
+            report(format!("Too long output directory: `{out_dir}`. Shorten your project path down to no more than 10 characters (or use WSL2 and its native Linux filesystem). Note that tricks like Windows `subst` do NOT work!"))?;
+        }
+    }
+
+    #[cfg(not(windows))]
+    {
+        if out_dir.contains(' ') {
+            report(format!("Output directory contains spaces: `{out_dir}`."))?;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn setup_clang_env() -> Result<()> {
+    const POLICY_VAR: &str = "ESP_IDF_ESPUP_CLANG_SYMLINK";
+    let policy = std::env::var(POLICY_VAR)
+        .ok()
+        .unwrap_or("try".into())
+        .to_lowercase();
+
+    if policy != "ignore" {
+        #[allow(deprecated)]
+        let espup_clang_path =
+            std::env::home_dir().map(|home| home.join(".espup").join("esp-clang"));
+
+        let err_msg = if let Some(espup_clang_path) = espup_clang_path {
+            if let Ok(real_path) = std::fs::read_link(&espup_clang_path) {
+                if real_path.is_dir() {
+                    std::env::set_var("LIBCLANG_PATH", real_path.as_os_str());
+                    None
+                } else {
+                    Some(format!(
+                        "Symlink {} points to a file",
+                        espup_clang_path.display()
+                    ))
+                }
+            } else {
+                Some(format!(
+                    "Symlink {} does not exist or points to a non-existing location",
+                    espup_clang_path.display()
+                ))
+            }
+        } else {
+            Some("Cannot locate user home directory".into())
+        };
+
+        if let Some(err_msg) = err_msg {
+            if policy == "warn" {
+                cargo::print_warning(format!("(esp-idf-sys) {err_msg}"));
+            } else if policy == "err" {
+                bail!(err_msg);
+            }
+        }
+    }
+
+    Ok(())
 }

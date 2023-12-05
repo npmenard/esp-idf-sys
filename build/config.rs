@@ -126,7 +126,8 @@ impl BuildConfig {
                     esp_idf_sdkconfig,
                     esp_idf_sdkconfig_defaults,
                     mcu,
-                    native: _,
+                    #[cfg(feature = "native")]
+                        native: _,
                     esp_idf_sys_root_crate: _,
                 },
         } = EspIdfSys::deserialize(&root_package.metadata)?;
